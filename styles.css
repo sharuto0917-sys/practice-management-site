@@ -234,6 +234,7 @@ label {
 .plan-list,
 .log-list,
 .goal-list,
+.song-list,
 .report-list {
   list-style: none;
   padding: 0;
@@ -247,6 +248,7 @@ label {
 .plan-item,
 .log-item,
 .goal-item,
+.song-item,
 .report-item {
   display: flex;
   align-items: center;
@@ -260,7 +262,8 @@ label {
 
 .player-item button,
 .plan-item button,
-.goal-item button {
+.goal-item button,
+.song-item button {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -276,7 +279,8 @@ label {
   align-items: flex-start;
 }
 
-.plan-main {
+.plan-main,
+.song-main {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -284,12 +288,14 @@ label {
 
 .plan-meta,
 .goal-meta,
-.report-meta {
+.report-meta,
+.song-meta {
   color: var(--muted);
   font-size: 0.82rem;
 }
 
-.category-tag {
+.category-tag,
+.song-badge {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 999px;
@@ -301,7 +307,8 @@ label {
 }
 
 .checkbox-button,
-.goal-toggle {
+.goal-toggle,
+.song-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -310,14 +317,16 @@ label {
 }
 
 .checkbox-button.done,
-.goal-toggle.done {
+.goal-toggle.done,
+.song-toggle.done {
   background: var(--green-soft);
   border-color: var(--green);
   color: #166534;
 }
 
 .checkbox-button.pending,
-.goal-toggle.pending {
+.goal-toggle.pending,
+.song-toggle.pending {
   background: #fff7ed;
   border-color: #fdba74;
   color: #9a5a00;
@@ -330,11 +339,13 @@ label {
   gap: 12px;
 }
 
-.goal-text {
+.goal-text,
+.song-main {
   flex: 1;
 }
 
-.goal-toggle {
+.goal-toggle,
+.song-toggle {
   min-width: 72px;
 }
 

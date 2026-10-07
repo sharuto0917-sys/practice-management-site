@@ -79,6 +79,25 @@
 
             <div class="card">
               <div class="section-head">
+                <h2>曲の練習</h2>
+                <button class="secondary-button" id="addSongButton">追加</button>
+              </div>
+              <form id="songForm" class="stack-form hidden">
+                <input type="text" id="songTitle" placeholder="曲名" maxlength="40" required />
+                <input type="text" id="songKey" placeholder="キー" maxlength="10" />
+                <select id="songDifficulty">
+                  <option value="初級">初級</option>
+                  <option value="中級">中級</option>
+                  <option value="上級">上級</option>
+                </select>
+                <input type="text" id="songFocus" placeholder="練習ポイント" maxlength="30" />
+                <button type="submit">保存</button>
+              </form>
+              <ul id="songList" class="song-list"></ul>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
                 <h2>今週の目標</h2>
               </div>
               <ul id="goalList" class="goal-list"></ul>
@@ -92,6 +111,23 @@
               </div>
               <form id="recordForm" class="stack-form">
                 <select id="recordPlayerSelect"></select>
+                <div class="input-row">
+                  <label>
+                    カテゴリ
+                    <select id="recordCategory">
+                      <option value="スケール">スケール</option>
+                      <option value="リズム">リズム</option>
+                      <option value="フレーズ">フレーズ</option>
+                      <option value="グルーヴ">グルーヴ</option>
+                    </select>
+                  </label>
+                  <label>
+                    曲
+                    <select id="recordSongSelect">
+                      <option value="">曲なし</option>
+                    </select>
+                  </label>
+                </div>
                 <div class="input-row">
                   <label>
                     BPM

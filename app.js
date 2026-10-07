@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'bass-practice-manager-v2';
+const STORAGE_KEY = 'bass-practice-manager-v3';
 
 const defaultState = {
   players: [
@@ -13,6 +13,11 @@ const defaultState = {
     { id: crypto.randomUUID(), text: '8th-note 16分でリズムを安定させる', done: true },
     { id: crypto.randomUUID(), text: '好きな曲のベースフレーズを1曲決める', done: false }
   ],
+  songs: [
+    { id: crypto.randomUUID(), title: 'Sweet Child O Mine', key: 'A', difficulty: '中級', focus: 'グルーヴ', done: false },
+    { id: crypto.randomUUID(), title: 'Back in Black', key: 'E', difficulty: '初級', focus: 'リズム', done: true },
+    { id: crypto.randomUUID(), title: 'Smooth Criminal', key: 'F', difficulty: '上級', focus: 'フレーズ', done: false }
+  ],
   plans: [
     { id: crypto.randomUUID(), playerId: null, title: '5弦スケール', category: 'スケール', minutes: 30, done: false },
     { id: crypto.randomUUID(), playerId: null, title: 'リズム練習', category: 'リズム', minutes: 45, done: true },
@@ -20,8 +25,8 @@ const defaultState = {
     { id: crypto.randomUUID(), playerId: null, title: 'グルーヴコード練習', category: 'グルーヴ', minutes: 35, done: false }
   ],
   logs: [
-    { id: crypto.randomUUID(), playerName: '青木', bpm: 96, minutes: 30, note: 'スケールの指使いを整理できた', createdAt: new Date().toISOString() },
-    { id: crypto.randomUUID(), playerName: '山崎', bpm: 120, minutes: 45, note: 'リズムが安定してきた', createdAt: new Date().toISOString() }
+    { id: crypto.randomUUID(), playerName: '青木', category: 'スケール', bpm: 96, minutes: 30, note: 'スケールの指使いを整理できた', createdAt: new Date().toISOString() },
+    { id: crypto.randomUUID(), playerName: '山崎', category: 'リズム', bpm: 120, minutes: 45, note: 'リズムが安定してきた', createdAt: new Date().toISOString() }
   ]
 };
 
@@ -34,20 +39,29 @@ const els = {
   playerList: document.getElementById('playerList'),
   planList: document.getElementById('planList'),
   goalList: document.getElementById('goalList'),
+  songList: document.getElementById('songList'),
   logList: document.getElementById('logList'),
   reportList: document.getElementById('reportList'),
   playerForm: document.getElementById('playerForm'),
   addPlayerButton: document.getElementById('addPlayerButton'),
   planForm: document.getElementById('planForm'),
   addPlanButton: document.getElementById('addPlanButton'),
+  songForm: document.getElementById('songForm'),
+  addSongButton: document.getElementById('addSongButton'),
   recordForm: document.getElementById('recordForm'),
   recordPlayerSelect: document.getElementById('recordPlayerSelect'),
+  recordCategory: document.getElementById('recordCategory'),
+  recordSongSelect: document.getElementById('recordSongSelect'),
   planPlayerSelect: document.getElementById('planPlayerSelect'),
   playerName: document.getElementById('playerName'),
   playerPosition: document.getElementById('playerPosition'),
   planTitle: document.getElementById('planTitle'),
   planCategory: document.getElementById('planCategory'),
   planMinutes: document.getElementById('planMinutes'),
+  songTitle: document.getElementById('songTitle'),
+  songKey: document.getElementById('songKey'),
+  songDifficulty: document.getElementById('songDifficulty'),
+  songFocus: document.getElementById('songFocus'),
   bpmInput: document.getElementById('bpmInput'),
   minutesInput: document.getElementById('minutesInput'),
   recordNote: document.getElementById('recordNote')
@@ -139,6 +153,18 @@ function renderPlayerList() {
   els.planPlayerSelect.innerHTML = options || '<option value="">練習者なし</option>';
 }
 
+function renderSongOptions() {
+  const songs = state.songs;
+  if (!songs.length) {
+    els.recordSongSelect.innerHTML = '<option value="">曲なし</option>';
+    return;
+  }
+
+  els.recordSongSelect.innerHTML = ['<option value="">曲なし</option>']
+    .concat(songs.map((song) => `<option value="${song.id}">${song.title}</option>`))
+    .join('');
+}
+
 function renderPlans() {
   const selectedId = state.selectedPlayerId;
   const filter = state.filter;
@@ -190,6 +216,34 @@ function renderGoals() {
     .join('');
 }
 
+function renderSongs() {
+  if (!state.songs.length) {
+    els.songList.innerHTML = '<li class="song-item"><div>曲の練習予定はまだありません</div></li>';
+    return;
+  }
+
+  els.songList.innerHTML = state.songs
+    .map(
+      (song) => `
+        <li class="song-item">
+          <div class="song-main">
+            <strong>${song.title}</strong>
+            <span class="song-meta">キー: ${song.key || '-'} / 難易度: ${song.difficulty}</span>
+            <span class="song-badge">${song.focus || '練習ポイント'}</span>
+          </div>
+          <button
+            type="button"
+            class="song-toggle ${song.done ? 'done' : 'pending'}"
+            data-song-toggle="${song.id}"
+          >
+            ${song.done ? '完了' : '未完'}
+          </button>
+        </li>
+      `
+    )
+    .join('');
+}
+
 function renderLogs() {
   if (!state.logs.length) {
     els.logList.innerHTML = '<li class="log-item">記録はまだありません</li>';
@@ -203,7 +257,7 @@ function renderLogs() {
       (log) => `
         <li class="log-item">
           <strong>${log.playerName}</strong>
-          <div class="plan-meta">BPM: ${log.bpm} / 時間: ${log.minutes}分</div>
+          <div class="plan-meta">${log.category} / BPM: ${log.bpm} / 時間: ${log.minutes}分</div>
           <div>${log.note || 'コメントなし'}</div>
         </li>
       `
@@ -241,8 +295,10 @@ function renderReport() {
 function updateView() {
   renderSummary();
   renderPlayerList();
+  renderSongOptions();
   renderPlans();
   renderGoals();
+  renderSongs();
   renderLogs();
   renderReport();
   els.todayDate.textContent = formatDate();
@@ -305,6 +361,34 @@ els.planForm.addEventListener('submit', (event) => {
   els.planForm.classList.add('hidden');
 });
 
+els.addSongButton.addEventListener('click', () => {
+  els.songForm.classList.toggle('hidden');
+});
+
+els.songForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const title = els.songTitle.value.trim();
+  const key = els.songKey.value.trim();
+  const difficulty = els.songDifficulty.value;
+  const focus = els.songFocus.value.trim();
+
+  if (!title) return;
+
+  state.songs.push({
+    id: crypto.randomUUID(),
+    title,
+    key: key || '未設定',
+    difficulty,
+    focus: focus || '練習ポイント',
+    done: false
+  });
+
+  saveState();
+  updateView();
+  els.songForm.reset();
+  els.songForm.classList.add('hidden');
+});
+
 els.playerList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-player-select]');
   if (!button) return;
@@ -338,6 +422,18 @@ els.goalList.addEventListener('click', (event) => {
   updateView();
 });
 
+els.songList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-song-toggle]');
+  if (!button) return;
+
+  const song = state.songs.find((item) => item.id === button.dataset.songToggle);
+  if (!song) return;
+
+  song.done = !song.done;
+  saveState();
+  updateView();
+});
+
 document.querySelectorAll('.filter-button').forEach((button) => {
   button.addEventListener('click', () => {
     state.filter = button.dataset.category;
@@ -350,18 +446,23 @@ els.recordForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const playerId = els.recordPlayerSelect.value || state.selectedPlayerId;
   const player = state.players.find((item) => item.id === playerId);
+  const category = els.recordCategory.value;
   const bpm = Number(els.bpmInput.value || 0);
   const minutes = Number(els.minutesInput.value || 0);
+  const song = state.songs.find((item) => item.id === els.recordSongSelect.value);
   const note = els.recordNote.value.trim();
 
   if (!player) return;
 
+  const detailNote = note || (song ? `${song.title} の練習を記録` : '記録入力');
+
   state.logs.push({
     id: crypto.randomUUID(),
     playerName: player.name,
+    category,
     bpm,
     minutes,
-    note: note || '記録入力',
+    note: detailNote,
     createdAt: new Date().toISOString()
   });
 
