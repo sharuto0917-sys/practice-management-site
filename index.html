@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ベース練習管理サイト</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Bass Practice Board</p>
+          <h1>ベース練習管理</h1>
+        </div>
+        <div class="date-box" id="todayDate"></div>
+      </header>
+
+      <main class="dashboard">
+        <section class="summary-grid">
+          <article class="card summary-card accent-blue">
+            <span>総練習数</span>
+            <strong id="totalPlanned">0</strong>
+            <small>予定</small>
+          </article>
+          <article class="card summary-card accent-green">
+            <span>完了</span>
+            <strong id="completedCount">0</strong>
+            <small>達成</small>
+          </article>
+          <article class="card summary-card accent-orange">
+            <span>練習時間</span>
+            <strong id="minutesCount">0</strong>
+            <small>分</small>
+          </article>
+          <article class="card summary-card accent-purple">
+            <span>平均BPM</span>
+            <strong id="bpmCount">0</strong>
+            <small>速さ</small>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <div class="left-column">
+            <div class="card">
+              <div class="section-head">
+                <h2>練習者一覧</h2>
+                <button class="secondary-button" id="addPlayerButton">追加</button>
+              </div>
+              <form id="playerForm" class="stack-form hidden">
+                <input type="text" id="playerName" placeholder="名前" maxlength="20" required />
+                <input type="text" id="playerPosition" placeholder="レベル / 役割" maxlength="20" />
+                <button type="submit">登録</button>
+              </form>
+              <ul id="playerList" class="player-list"></ul>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
+                <h2>練習メニュー</h2>
+                <button class="secondary-button" id="addPlanButton">新規作成</button>
+              </div>
+              <form id="planForm" class="stack-form hidden">
+                <select id="planPlayerSelect"></select>
+                <input type="text" id="planTitle" placeholder="例: 5弦スケール / リズム練習" maxlength="40" required />
+                <input type="text" id="planCategory" placeholder="例: スケール / リズム / フレーズ" maxlength="20" required />
+                <input type="number" id="planMinutes" min="10" max="180" step="10" value="40" />
+                <button type="submit">保存</button>
+              </form>
+              <div id="planList" class="plan-list"></div>
+            </div>
+          </div>
+
+          <div class="right-column">
+            <div class="card">
+              <div class="section-head">
+                <h2>練習記録</h2>
+              </div>
+              <form id="recordForm" class="stack-form">
+                <select id="recordPlayerSelect"></select>
+                <div class="input-row">
+                  <label>
+                    BPM
+                    <input type="number" id="bpmInput" min="0" value="80" />
+                  </label>
+                  <label>
+                    練習時間
+                    <input type="number" id="minutesInput" min="0" value="30" />
+                  </label>
+                </div>
+                <label>
+                  コメント
+                  <textarea id="recordNote" rows="3" placeholder="今日の改善ポイントや反省"></textarea>
+                </label>
+                <button type="submit">記録を保存</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
+                <h2>最近の記録</h2>
+              </div>
+              <ul id="logList" class="log-list"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

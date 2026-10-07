@@ -1,20 +1,20 @@
-const STORAGE_KEY = 'baseball-practice-manager-v1';
+const STORAGE_KEY = 'bass-practice-manager-v1';
 
 const defaultState = {
   players: [
-    { id: crypto.randomUUID(), name: '田中', position: '投手' },
-    { id: crypto.randomUUID(), name: '佐藤', position: '捕手' },
-    { id: crypto.randomUUID(), name: '山田', position: '外野手' }
+    { id: crypto.randomUUID(), name: '青木', position: '中級者' },
+    { id: crypto.randomUUID(), name: '山崎', position: '上級者' },
+    { id: crypto.randomUUID(), name: '田村', position: '初心者' }
   ],
   selectedPlayerId: null,
   plans: [
-    { id: crypto.randomUUID(), playerId: null, title: 'キャッチボール', category: '投球', minutes: 30, done: false },
-    { id: crypto.randomUUID(), playerId: null, title: 'バッティング', category: '打撃', minutes: 45, done: true },
-    { id: crypto.randomUUID(), playerId: null, title: '守備練習', category: '守備', minutes: 40, done: false }
+    { id: crypto.randomUUID(), playerId: null, title: '5弦スケール', category: 'スケール', minutes: 30, done: false },
+    { id: crypto.randomUUID(), playerId: null, title: 'リズム練習', category: 'リズム', minutes: 45, done: true },
+    { id: crypto.randomUUID(), playerId: null, title: 'フレーズ練習', category: 'メロディ', minutes: 40, done: false }
   ],
   logs: [
-    { id: crypto.randomUUID(), playerName: '田中', pitch: 80, bat: 20, note: 'フォーム確認を実施', createdAt: new Date().toISOString() },
-    { id: crypto.randomUUID(), playerName: '山田', pitch: 0, bat: 15, note: 'コンタクト良好', createdAt: new Date().toISOString() }
+    { id: crypto.randomUUID(), playerName: '青木', bpm: 96, minutes: 30, note: 'スケールの指使いを整理できた', createdAt: new Date().toISOString() },
+    { id: crypto.randomUUID(), playerName: '山崎', bpm: 120, minutes: 45, note: 'リズムが安定してきた', createdAt: new Date().toISOString() }
   ]
 };
 
@@ -22,8 +22,8 @@ const els = {
   todayDate: document.getElementById('todayDate'),
   totalPlanned: document.getElementById('totalPlanned'),
   completedCount: document.getElementById('completedCount'),
-  pitchCount: document.getElementById('pitchCount'),
-  batCount: document.getElementById('batCount'),
+  minutesCount: document.getElementById('minutesCount'),
+  bpmCount: document.getElementById('bpmCount'),
   playerList: document.getElementById('playerList'),
   planList: document.getElementById('planList'),
   logList: document.getElementById('logList'),
@@ -39,8 +39,8 @@ const els = {
   planTitle: document.getElementById('planTitle'),
   planCategory: document.getElementById('planCategory'),
   planMinutes: document.getElementById('planMinutes'),
-  pitchInput: document.getElementById('pitchInput'),
-  batInput: document.getElementById('batInput'),
+  bpmInput: document.getElementById('bpmInput'),
+  minutesInput: document.getElementById('minutesInput'),
   recordNote: document.getElementById('recordNote')
 };
 
@@ -80,10 +80,6 @@ function formatDate() {
   }).format(now);
 }
 
-function getSelectedPlayer() {
-  return state.players.find((player) => player.id === state.selectedPlayerId) || state.players[0];
-}
-
 function syncSelectedPlayer() {
   if (!state.selectedPlayerId && state.players.length > 0) {
     state.selectedPlayerId = state.players[0].id;
@@ -93,13 +89,15 @@ function syncSelectedPlayer() {
 function renderSummary() {
   const total = state.plans.length;
   const completed = state.plans.filter((plan) => plan.done).length;
-  const pitchCount = state.logs.reduce((sum, log) => sum + Number(log.pitch || 0), 0);
-  const batCount = state.logs.reduce((sum, log) => sum + Number(log.bat || 0), 0);
+  const minutes = state.logs.reduce((sum, log) => sum + Number(log.minutes || 0), 0);
+  const bpm = state.logs.length
+    ? Math.round(state.logs.reduce((sum, log) => sum + Number(log.bpm || 0), 0) / state.logs.length)
+    : 0;
 
   els.totalPlanned.textContent = String(total);
   els.completedCount.textContent = String(completed);
-  els.pitchCount.textContent = String(pitchCount);
-  els.batCount.textContent = String(batCount);
+  els.minutesCount.textContent = String(minutes);
+  els.bpmCount.textContent = String(bpm);
 }
 
 function renderPlayerList() {
@@ -128,12 +126,12 @@ function renderPlayerList() {
     )
     .join('');
 
-  els.recordPlayerSelect.innerHTML = options || '<option value="">選手なし</option>';
-  els.planPlayerSelect.innerHTML = options || '<option value="">選手なし</option>';
+  els.recordPlayerSelect.innerHTML = options || '<option value="">練習者なし</option>';
+  els.planPlayerSelect.innerHTML = options || '<option value="">練習者なし</option>';
 
   if (!state.players.length) {
-    els.recordPlayerSelect.innerHTML = '<option value="">選手なし</option>';
-    els.planPlayerSelect.innerHTML = '<option value="">選手なし</option>';
+    els.recordPlayerSelect.innerHTML = '<option value="">練習者なし</option>';
+    els.planPlayerSelect.innerHTML = '<option value="">練習者なし</option>';
   }
 }
 
@@ -180,7 +178,7 @@ function renderLogs() {
       (log) => `
         <li class="log-item">
           <strong>${log.playerName}</strong>
-          <div class="plan-meta">投球数: ${log.pitch} / 打席数: ${log.bat}</div>
+          <div class="plan-meta">BPM: ${log.bpm} / 時間: ${log.minutes}分</div>
           <div>${log.note || 'コメントなし'}</div>
         </li>
       `
@@ -274,8 +272,8 @@ els.recordForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const playerId = els.recordPlayerSelect.value || state.selectedPlayerId;
   const player = state.players.find((item) => item.id === playerId);
-  const pitch = Number(els.pitchInput.value || 0);
-  const bat = Number(els.batInput.value || 0);
+  const bpm = Number(els.bpmInput.value || 0);
+  const minutes = Number(els.minutesInput.value || 0);
   const note = els.recordNote.value.trim();
 
   if (!player) return;
@@ -283,8 +281,8 @@ els.recordForm.addEventListener('submit', (event) => {
   state.logs.push({
     id: crypto.randomUUID(),
     playerName: player.name,
-    pitch,
-    bat,
+    bpm,
+    minutes,
     note: note || '記録入力',
     createdAt: new Date().toISOString()
   });
