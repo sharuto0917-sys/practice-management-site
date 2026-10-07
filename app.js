@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'bass-practice-manager-v3';
+const STORAGE_KEY = 'bass-practice-manager-v4';
 
 const defaultState = {
   players: [
@@ -27,6 +27,10 @@ const defaultState = {
   logs: [
     { id: crypto.randomUUID(), playerName: '青木', category: 'スケール', bpm: 96, minutes: 30, note: 'スケールの指使いを整理できた', createdAt: new Date().toISOString() },
     { id: crypto.randomUUID(), playerName: '山崎', category: 'リズム', bpm: 120, minutes: 45, note: 'リズムが安定してきた', createdAt: new Date().toISOString() }
+  ],
+  journals: [
+    { id: crypto.randomUUID(), date: new Date().toISOString().slice(0, 10), title: '今日の気づき', text: 'スラップよりもグルーヴ重視で弾くと安定する' },
+    { id: crypto.randomUUID(), date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), title: '反省', text: 'リズムの踏み込みが少し遅かった' }
   ]
 };
 
@@ -41,7 +45,9 @@ const els = {
   goalList: document.getElementById('goalList'),
   songList: document.getElementById('songList'),
   logList: document.getElementById('logList'),
+  logSearch: document.getElementById('logSearch'),
   reportList: document.getElementById('reportList'),
+  journalList: document.getElementById('journalList'),
   playerForm: document.getElementById('playerForm'),
   addPlayerButton: document.getElementById('addPlayerButton'),
   planForm: document.getElementById('planForm'),
@@ -64,7 +70,11 @@ const els = {
   songFocus: document.getElementById('songFocus'),
   bpmInput: document.getElementById('bpmInput'),
   minutesInput: document.getElementById('minutesInput'),
-  recordNote: document.getElementById('recordNote')
+  recordNote: document.getElementById('recordNote'),
+  journalForm: document.getElementById('journalForm'),
+  journalDate: document.getElementById('journalDate'),
+  journalTitle: document.getElementById('journalTitle'),
+  journalText: document.getElementById('journalText')
 };
 
 const state = loadState();
@@ -245,12 +255,19 @@ function renderSongs() {
 }
 
 function renderLogs() {
-  if (!state.logs.length) {
-    els.logList.innerHTML = '<li class="log-item">記録はまだありません</li>';
+  const query = (els.logSearch.value || '').trim().toLowerCase();
+  const logs = [...state.logs].filter((log) => {
+    if (!query) return true;
+    const haystack = `${log.playerName} ${log.category} ${log.note}`.toLowerCase();
+    return haystack.includes(query);
+  });
+
+  if (!logs.length) {
+    els.logList.innerHTML = '<li class="log-item">該当する記録はありません</li>';
     return;
   }
 
-  els.logList.innerHTML = [...state.logs]
+  els.logList.innerHTML = logs
     .slice()
     .reverse()
     .map(
@@ -265,6 +282,29 @@ function renderLogs() {
     .join('');
 }
 
+function renderJournals() {
+  if (!state.journals.length) {
+    els.journalList.innerHTML = '<li class="journal-item">日誌はまだありません</li>';
+    return;
+  }
+
+  els.journalList.innerHTML = [...state.journals]
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .map(
+      (journal) => `
+        <li class="journal-item">
+          <div class="journal-main">
+            <strong>${journal.title}</strong>
+            <span class="journal-meta">${journal.date}</span>
+            <div>${journal.text || '内容なし'}</div>
+          </div>
+        </li>
+      `
+    )
+    .join('');
+}
+
 function renderReport() {
   const goalsDone = state.goals.filter((goal) => goal.done).length;
   const goalsTotal = state.goals.length;
@@ -273,9 +313,18 @@ function renderReport() {
     ? Math.round(state.logs.reduce((sum, log) => sum + Number(log.bpm || 0), 0) / state.logs.length)
     : 0;
 
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const monthLogs = state.logs.filter((log) => new Date(log.createdAt) >= monthStart);
+  const monthMinutes = monthLogs.reduce((sum, log) => sum + Number(log.minutes || 0), 0);
+  const uniqueDays = new Set(monthLogs.map((log) => new Date(log.createdAt).toISOString().slice(0, 10))).size;
+
   const items = [
     { label: '目標達成率', value: `${goalsTotal ? Math.round((goalsDone / goalsTotal) * 100) : 0}%` },
     { label: '総練習時間', value: `${minutes}分` },
+    { label: '今月の時間', value: `${monthMinutes}分` },
+    { label: '今月の練習日数', value: `${uniqueDays}日` },
     { label: '平均BPM', value: `${avgBpm} BPM` },
     { label: '進行中メニュー', value: `${state.plans.filter((plan) => !plan.done).length}件` }
   ];
@@ -300,6 +349,7 @@ function updateView() {
   renderGoals();
   renderSongs();
   renderLogs();
+  renderJournals();
   renderReport();
   els.todayDate.textContent = formatDate();
 
@@ -471,4 +521,29 @@ els.recordForm.addEventListener('submit', (event) => {
   els.recordForm.reset();
 });
 
+els.logSearch.addEventListener('input', () => {
+  renderLogs();
+});
+
+els.journalForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const date = els.journalDate.value;
+  const title = els.journalTitle.value.trim();
+  const text = els.journalText.value.trim();
+
+  if (!date || !title) return;
+
+  state.journals.push({
+    id: crypto.randomUUID(),
+    date,
+    title,
+    text: text || 'メモなし'
+  });
+
+  saveState();
+  updateView();
+  els.journalForm.reset();
+});
+
+els.journalDate.valueAsDate = new Date();
 updateView();

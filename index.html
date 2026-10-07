@@ -149,8 +149,22 @@
             <div class="card">
               <div class="section-head">
                 <h2>最近の記録</h2>
+                <input id="logSearch" type="search" placeholder="検索" />
               </div>
               <ul id="logList" class="log-list"></ul>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
+                <h2>練習日誌</h2>
+              </div>
+              <form id="journalForm" class="stack-form">
+                <input type="date" id="journalDate" required />
+                <input type="text" id="journalTitle" maxlength="30" placeholder="タイトル" required />
+                <textarea id="journalText" rows="3" placeholder="今日の練習内容や気づき"></textarea>
+                <button type="submit">日誌を保存</button>
+              </form>
+              <ul id="journalList" class="journal-list"></ul>
             </div>
 
             <div class="card">
