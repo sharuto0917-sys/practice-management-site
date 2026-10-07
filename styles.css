@@ -13,6 +13,7 @@
   --muted: #6b7280;
   --border: #e3ddff;
   --shadow: 0 12px 28px rgba(91, 61, 245, 0.08);
+  --dark: #18132d;
 }
 
 * {
@@ -179,6 +180,28 @@ button[type="submit"] {
   display: none;
 }
 
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filter-button {
+  background: #f3f4f6;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+
+.filter-button.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
 input,
 select,
 textarea {
@@ -209,7 +232,9 @@ label {
 
 .player-list,
 .plan-list,
-.log-list {
+.log-list,
+.goal-list,
+.report-list {
   list-style: none;
   padding: 0;
   margin: 18px 0 0;
@@ -220,7 +245,9 @@ label {
 
 .player-item,
 .plan-item,
-.log-item {
+.log-item,
+.goal-item,
+.report-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -232,7 +259,8 @@ label {
 }
 
 .player-item button,
-.plan-item button {
+.plan-item button,
+.goal-item button {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -254,12 +282,26 @@ label {
   gap: 4px;
 }
 
-.plan-meta {
+.plan-meta,
+.goal-meta,
+.report-meta {
   color: var(--muted);
   font-size: 0.82rem;
 }
 
-.checkbox-button {
+.category-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.checkbox-button,
+.goal-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -267,23 +309,42 @@ label {
   font-weight: 600;
 }
 
-.checkbox-button.done {
+.checkbox-button.done,
+.goal-toggle.done {
   background: var(--green-soft);
   border-color: var(--green);
   color: #166534;
 }
 
-.checkbox-button.pending {
+.checkbox-button.pending,
+.goal-toggle.pending {
   background: #fff7ed;
   border-color: #fdba74;
   color: #9a5a00;
 }
 
-.log-item {
+.goal-item {
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-text {
+  flex: 1;
+}
+
+.goal-toggle {
+  min-width: 72px;
+}
+
+.log-item,
+.report-item {
   display: block;
 }
 
-.log-item strong {
+.log-item strong,
+.report-item strong {
   display: block;
   margin-bottom: 4px;
 }

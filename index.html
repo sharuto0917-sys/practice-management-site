@@ -60,6 +60,13 @@
                 <h2>練習メニュー</h2>
                 <button class="secondary-button" id="addPlanButton">新規作成</button>
               </div>
+              <div class="filter-row" aria-label="カテゴリフィルター">
+                <button type="button" class="filter-button active" data-category="all">全体</button>
+                <button type="button" class="filter-button" data-category="スケール">スケール</button>
+                <button type="button" class="filter-button" data-category="リズム">リズム</button>
+                <button type="button" class="filter-button" data-category="フレーズ">フレーズ</button>
+                <button type="button" class="filter-button" data-category="グルーヴ">グルーヴ</button>
+              </div>
               <form id="planForm" class="stack-form hidden">
                 <select id="planPlayerSelect"></select>
                 <input type="text" id="planTitle" placeholder="例: 5弦スケール / リズム練習" maxlength="40" required />
@@ -68,6 +75,13 @@
                 <button type="submit">保存</button>
               </form>
               <div id="planList" class="plan-list"></div>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
+                <h2>今週の目標</h2>
+              </div>
+              <ul id="goalList" class="goal-list"></ul>
             </div>
           </div>
 
@@ -101,6 +115,13 @@
                 <h2>最近の記録</h2>
               </div>
               <ul id="logList" class="log-list"></ul>
+            </div>
+
+            <div class="card">
+              <div class="section-head">
+                <h2>週次レポート</h2>
+              </div>
+              <ul id="reportList" class="report-list"></ul>
             </div>
           </div>
         </section>

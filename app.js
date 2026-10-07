@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'bass-practice-manager-v1';
+const STORAGE_KEY = 'bass-practice-manager-v2';
 
 const defaultState = {
   players: [
@@ -7,10 +7,17 @@ const defaultState = {
     { id: crypto.randomUUID(), name: '田村', position: '初心者' }
   ],
   selectedPlayerId: null,
+  filter: 'all',
+  goals: [
+    { id: crypto.randomUUID(), text: '5弦スケールを1周ずつ安定させる', done: false },
+    { id: crypto.randomUUID(), text: '8th-note 16分でリズムを安定させる', done: true },
+    { id: crypto.randomUUID(), text: '好きな曲のベースフレーズを1曲決める', done: false }
+  ],
   plans: [
     { id: crypto.randomUUID(), playerId: null, title: '5弦スケール', category: 'スケール', minutes: 30, done: false },
     { id: crypto.randomUUID(), playerId: null, title: 'リズム練習', category: 'リズム', minutes: 45, done: true },
-    { id: crypto.randomUUID(), playerId: null, title: 'フレーズ練習', category: 'メロディ', minutes: 40, done: false }
+    { id: crypto.randomUUID(), playerId: null, title: 'フレーズ練習', category: 'フレーズ', minutes: 40, done: false },
+    { id: crypto.randomUUID(), playerId: null, title: 'グルーヴコード練習', category: 'グルーヴ', minutes: 35, done: false }
   ],
   logs: [
     { id: crypto.randomUUID(), playerName: '青木', bpm: 96, minutes: 30, note: 'スケールの指使いを整理できた', createdAt: new Date().toISOString() },
@@ -26,7 +33,9 @@ const els = {
   bpmCount: document.getElementById('bpmCount'),
   playerList: document.getElementById('playerList'),
   planList: document.getElementById('planList'),
+  goalList: document.getElementById('goalList'),
   logList: document.getElementById('logList'),
+  reportList: document.getElementById('reportList'),
   playerForm: document.getElementById('playerForm'),
   addPlayerButton: document.getElementById('addPlayerButton'),
   planForm: document.getElementById('planForm'),
@@ -52,9 +61,9 @@ function loadState() {
     const base = structuredClone(defaultState);
     const defaultPlayer = base.players[0];
     base.selectedPlayerId = defaultPlayer.id;
-    base.plans[0].playerId = defaultPlayer.id;
-    base.plans[1].playerId = defaultPlayer.id;
-    base.plans[2].playerId = defaultPlayer.id;
+    base.plans.forEach((plan) => {
+      plan.playerId = defaultPlayer.id;
+    });
     return base;
   }
 
@@ -128,19 +137,19 @@ function renderPlayerList() {
 
   els.recordPlayerSelect.innerHTML = options || '<option value="">練習者なし</option>';
   els.planPlayerSelect.innerHTML = options || '<option value="">練習者なし</option>';
-
-  if (!state.players.length) {
-    els.recordPlayerSelect.innerHTML = '<option value="">練習者なし</option>';
-    els.planPlayerSelect.innerHTML = '<option value="">練習者なし</option>';
-  }
 }
 
 function renderPlans() {
   const selectedId = state.selectedPlayerId;
-  const plans = state.plans.filter((plan) => !selectedId || plan.playerId === selectedId || !plan.playerId);
+  const filter = state.filter;
+  const plans = state.plans.filter((plan) => {
+    const matchesPlayer = !selectedId || plan.playerId === selectedId || !plan.playerId;
+    const matchesFilter = filter === 'all' || plan.category === filter;
+    return matchesPlayer && matchesFilter;
+  });
 
   if (!plans.length) {
-    els.planList.innerHTML = '<li class="plan-item"><div>練習メニューはまだありません</div></li>';
+    els.planList.innerHTML = '<li class="plan-item"><div>該当する練習メニューはありません</div></li>';
     return;
   }
 
@@ -151,6 +160,7 @@ function renderPlans() {
           <div class="plan-main">
             <strong>${plan.title}</strong>
             <span class="plan-meta">${plan.category} / ${plan.minutes}分</span>
+            <span class="category-tag">${plan.category}</span>
           </div>
           <button
             type="button"
@@ -158,6 +168,21 @@ function renderPlans() {
             data-plan-toggle="${plan.id}"
           >
             ${plan.done ? '完了' : '未完了'}
+          </button>
+        </li>
+      `
+    )
+    .join('');
+}
+
+function renderGoals() {
+  els.goalList.innerHTML = state.goals
+    .map(
+      (goal) => `
+        <li class="goal-item">
+          <span class="goal-text">${goal.text}</span>
+          <button type="button" class="goal-toggle ${goal.done ? 'done' : 'pending'}" data-goal-toggle="${goal.id}">
+            ${goal.done ? '達成' : '未達'}
           </button>
         </li>
       `
@@ -186,12 +211,45 @@ function renderLogs() {
     .join('');
 }
 
+function renderReport() {
+  const goalsDone = state.goals.filter((goal) => goal.done).length;
+  const goalsTotal = state.goals.length;
+  const minutes = state.logs.reduce((sum, log) => sum + Number(log.minutes || 0), 0);
+  const avgBpm = state.logs.length
+    ? Math.round(state.logs.reduce((sum, log) => sum + Number(log.bpm || 0), 0) / state.logs.length)
+    : 0;
+
+  const items = [
+    { label: '目標達成率', value: `${goalsTotal ? Math.round((goalsDone / goalsTotal) * 100) : 0}%` },
+    { label: '総練習時間', value: `${minutes}分` },
+    { label: '平均BPM', value: `${avgBpm} BPM` },
+    { label: '進行中メニュー', value: `${state.plans.filter((plan) => !plan.done).length}件` }
+  ];
+
+  els.reportList.innerHTML = items
+    .map(
+      (item) => `
+        <li class="report-item">
+          <strong>${item.label}</strong>
+          <div class="report-meta">${item.value}</div>
+        </li>
+      `
+    )
+    .join('');
+}
+
 function updateView() {
   renderSummary();
   renderPlayerList();
   renderPlans();
+  renderGoals();
   renderLogs();
+  renderReport();
   els.todayDate.textContent = formatDate();
+
+  document.querySelectorAll('.filter-button').forEach((button) => {
+    button.classList.toggle('active', button.dataset.category === state.filter);
+  });
 }
 
 els.addPlayerButton.addEventListener('click', () => {
@@ -266,6 +324,26 @@ els.planList.addEventListener('click', (event) => {
   plan.done = !plan.done;
   saveState();
   updateView();
+});
+
+els.goalList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-goal-toggle]');
+  if (!button) return;
+
+  const goal = state.goals.find((item) => item.id === button.dataset.goalToggle);
+  if (!goal) return;
+
+  goal.done = !goal.done;
+  saveState();
+  updateView();
+});
+
+document.querySelectorAll('.filter-button').forEach((button) => {
+  button.addEventListener('click', () => {
+    state.filter = button.dataset.category;
+    saveState();
+    updateView();
+  });
 });
 
 els.recordForm.addEventListener('submit', (event) => {
